@@ -1,0 +1,133 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+
+// 문자열 파싱 함수
+void get_json_string(char *json, char *key, char *output) {
+    char search_key[100];
+    sprintf(search_key, "\"%s\":\"", key); 
+    char *start = strstr(json, search_key);
+    if (start) {
+        start += strlen(search_key);
+        char *end = strchr(start, '\"');
+        if (end) {
+            int length = end - start;
+            strncpy(output, start, length);
+            output[length] = '\0';
+        } else { strcpy(output, ""); }
+    } else { strcpy(output, ""); }
+}
+
+// 정수(int) 파싱 함수
+int get_json_int(char *json, char *key) {
+    char search_key[100];
+    sprintf(search_key, "\"%s\":", key);
+    char *start = strstr(json, search_key);
+    if (start) {
+        start += strlen(search_key);
+        return atoi(start);
+    }
+    return 0;
+}
+
+// [추가됨] 실수(double) 파싱 함수 - 인기도 가져오기용
+double get_json_double(char *json, char *key) {
+    char search_key[100];
+    sprintf(search_key, "\"%s\":", key);
+    char *start = strstr(json, search_key);
+    if (start) {
+        start += strlen(search_key);
+        return atof(start); // 문자를 실수로 변환
+    }
+    return 0.0;
+}
+
+int main() {
+    // -------------------------------------------------------
+    // 1. 어제 날짜 자동 계산
+    // -------------------------------------------------------
+    time_t t = time(NULL);
+    t -= 86400; // 하루 빼기 (어제)
+    struct tm tm = *localtime(&t);
+
+    int month = tm.tm_mon + 1;
+    int day = tm.tm_mday;
+    int year = tm.tm_year + 1900;
+
+    char date_str[50];
+    sprintf(date_str, "%02d_%02d_%d", month, day, year);
+
+    char gz_filename[100];
+    sprintf(gz_filename, "movie_ids_%s.json.gz", date_str);
+
+    char json_filename[100];
+    sprintf(json_filename, "movie_ids_%s.json", date_str);
+
+    char url[256];
+    sprintf(url, "http://files.tmdb.org/p/exports/%s", gz_filename);
+
+    printf("========================================\n");
+    printf("[1단계] 어제 데이터 다운로드 (%s)...\n", date_str);
+    
+    char command[1024];
+    sprintf(command, "curl -f -L -o %s %s", gz_filename, url);
+    if (system(command) != 0) {
+        printf("다운로드 실패.\n");
+        return 1;
+    }
+
+    // -------------------------------------------------------
+    // 2. 압축 풀기 (PowerShell)
+    // -------------------------------------------------------
+    printf("\n[2단계] 압축 해제 중...\n");
+    sprintf(command, "powershell -Command \"$in=[System.IO.File]::OpenRead('%s'); $out=[System.IO.File]::Create('%s'); $gz=[System.IO.Compression.GZipStream]::new($in,[System.IO.Compression.CompressionMode]::Decompress); $gz.CopyTo($out); $gz.Close(); $out.Close(); $in.Close()\"", gz_filename, json_filename);
+    system(command);
+
+    // -------------------------------------------------------
+    // 3. 파일 읽기 및 출력
+    // -------------------------------------------------------
+    printf("\n[3단계] 영화 데이터 읽기 (인기도 포함)...\n");
+    FILE *fp = fopen(json_filename, "r");
+    
+    if (fp == NULL) {
+        printf("파일 열기 실패.\n");
+        return 1;
+    }
+
+    char buffer[4096];
+    char title[1024];
+    int id;
+    double popularity; // 인기도 저장 변수
+    int count = 0;
+
+    printf("------------------------------------------------------------\n");
+    printf(" ID      |  인기도  |  제목\n");
+    printf("------------------------------------------------------------\n");
+
+    while (fgets(buffer, sizeof(buffer), fp) != NULL) {
+        id = get_json_int(buffer, "id");
+        get_json_string(buffer, "original_title", title);
+        
+        // [추가됨] 인기도(popularity) 가져오기
+        popularity = get_json_double(buffer, "popularity");
+
+        if (id > 0 && strlen(title) > 0) {
+            // %.2f는 소수점 둘째 자리까지 출력하라는 뜻
+            printf("%-8d | %6.2f   | %s\n", id, popularity, title);
+            count++;
+        }
+
+        if (count >= 20) { 
+            printf("------------------------------------------------------------\n");
+            printf("... (데이터가 너무 많아 20개만 표시함) ...\n");
+            break; 
+        }
+    }
+
+    fclose(fp);
+    sprintf(command, "del %s", gz_filename);
+    system(command);
+    
+    return 0;
+}
