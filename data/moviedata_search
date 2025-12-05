@@ -3,6 +3,16 @@
 #include <string.h>
 #include <time.h>
 
+// 파일 존재 여부 확인 함수 (0: 없음, 1: 있음)
+int file_exists(const char *filename) {
+    FILE *file = fopen(filename, "r");
+    if (file) {
+        fclose(file);
+        return 1;
+    }
+    return 0;
+}
+
 // 문자열 파싱 함수
 void get_json_string(char *json, char *key, char *output) {
     char search_key[100];
@@ -33,10 +43,10 @@ double get_json_double(char *json, char *key) {
 
 int main() {
     // -------------------------------------------------------
-    // 1. 어제 날짜 데이터 준비
+    // 1. 어제 날짜 계산
     // -------------------------------------------------------
     time_t t = time(NULL);
-    t -= 86400; // 하루 전(어제)
+    t -= 86400; // 어제
     struct tm tm = *localtime(&t);
 
     int month = tm.tm_mon + 1;
@@ -54,33 +64,57 @@ int main() {
     sprintf(url, "http://files.tmdb.org/p/exports/%s", gz_filename);
 
     printf("=============================================\n");
-    printf("[1단계] 데이터 다운로드 (%s)...\n", date_str);
-    
-    char command[1024];
-    sprintf(command, "curl -f -L -o %s %s", gz_filename, url);
-    if (system(command) != 0) return 1;
-
-    printf("[2단계] 압축 해제...\n");
-    sprintf(command, "powershell -Command \"$in=[System.IO.File]::OpenRead('%s'); $out=[System.IO.File]::Create('%s'); $gz=[System.IO.Compression.GZipStream]::new($in,[System.IO.Compression.CompressionMode]::Decompress); $gz.CopyTo($out); $gz.Close(); $out.Close(); $in.Close()\"", gz_filename, json_filename);
-    system(command);
+    printf("타겟 날짜: %s\n", date_str);
 
     // -------------------------------------------------------
-    // 2. HTML 파일 만들기
+    // [핵심 기능] 파일이 이미 있는지 확인!
     // -------------------------------------------------------
-    printf("[3단계] 웹사이트 생성 중...\n");
+    if (file_exists(json_filename)) {
+        printf("✅ [확인] 이미 다운로드 받은 파일이 있습니다!\n");
+        printf(">>> 다운로드 및 압축 해제 단계를 건너뜁니다.\n");
+    } 
+    else {
+        // 파일이 없으면 다운로드 수행
+        printf("❌ [확인] 파일이 없습니다. 새로 다운로드합니다.\n");
+        
+        printf("[1단계] 데이터 다운로드...\n");
+        char command[1024];
+        sprintf(command, "curl -f -L -o %s %s", gz_filename, url);
+        if (system(command) != 0) {
+            printf("다운로드 실패 (인터넷 연결 확인).\n");
+            return 1;
+        }
+
+        printf("[2단계] 압축 해제...\n");
+        sprintf(command, "powershell -Command \"$in=[System.IO.File]::OpenRead('%s'); $out=[System.IO.File]::Create('%s'); $gz=[System.IO.Compression.GZipStream]::new($in,[System.IO.Compression.CompressionMode]::Decompress); $gz.CopyTo($out); $gz.Close(); $out.Close(); $in.Close()\"", gz_filename, json_filename);
+        system(command);
+        
+        // 압축 파일(.gz)은 이제 필요 없으니 삭제
+        sprintf(command, "del %s", gz_filename);
+        system(command);
+    }
+
+    // -------------------------------------------------------
+    // 3. HTML 생성 (파일이 있든 없든 항상 수행하여 최신화)
+    // -------------------------------------------------------
+    printf("[3단계] 웹사이트 생성 중 (index.html)...\n");
     
     FILE *fp_in = fopen(json_filename, "r");
     FILE *fp_out = fopen("index.html", "w");
 
-    if (fp_in == NULL || fp_out == NULL) return 1;
+    if (fp_in == NULL) {
+        printf("오류: 데이터 파일을 읽을 수 없습니다.\n");
+        return 1;
+    }
 
-    // HTML 헤더 & CSS (메타크리틱 스타일)
+    // HTML 헤더 작성
     fprintf(fp_out, "<!DOCTYPE html>\n<html>\n<head>\n");
     fprintf(fp_out, "<meta charset='UTF-8'>\n");
     fprintf(fp_out, "<title>영화 평점 사이트</title>\n");
     fprintf(fp_out, "<style>\n");
     fprintf(fp_out, "  body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f2f2f2; margin: 0; padding: 20px; }\n");
     fprintf(fp_out, "  h1 { text-align: center; color: #333; margin-bottom: 30px; }\n");
+    fprintf(fp_out, "  .info-text { text-align: center; color: #666; margin-bottom: 20px; font-size: 14px; }\n");
     fprintf(fp_out, "  .container { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; max-width: 1200px; margin: 0 auto; }\n");
     fprintf(fp_out, "  .card { background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); overflow: hidden; transition: transform 0.2s; cursor: pointer; }\n");
     fprintf(fp_out, "  .card:hover { transform: translateY(-5px); box-shadow: 0 8px 12px rgba(0,0,0,0.2); }\n");
@@ -92,10 +126,11 @@ int main() {
     fprintf(fp_out, "  .red { background-color: #ff0000; }\n");
     fprintf(fp_out, "  .title { font-size: 16px; font-weight: bold; margin-top: 15px; margin-bottom: 5px; line-height: 1.4; color: #2c3e50; }\n");
     fprintf(fp_out, "  .id-text { font-size: 12px; color: #95a5a6; }\n");
-    fprintf(fp_out, "  /* 링크 스타일 제거 */ a { text-decoration: none; color: inherit; }\n");
+    fprintf(fp_out, "  a { text-decoration: none; color: inherit; }\n");
     fprintf(fp_out, "</style>\n</head>\n<body>\n");
     
-    fprintf(fp_out, "<h1>?? 일일 영화 인기도 순위 (%d-%02d-%02d)</h1>\n", year, month, day);
+    fprintf(fp_out, "<h1>🎬 일일 영화 순위 (%s)</h1>\n", date_str);
+    fprintf(fp_out, "<div class='info-text'>데이터 출처: TMDB Daily Export (Local Cache)</div>\n");
     fprintf(fp_out, "<div class='container'>\n");
 
     char buffer[4096];
@@ -104,6 +139,7 @@ int main() {
     int id;
     int count = 0;
 
+    // 데이터 읽기
     while (fgets(buffer, sizeof(buffer), fp_in) != NULL) {
         get_json_string(buffer, "original_title", title);
         popularity = get_json_double(buffer, "popularity");
@@ -114,10 +150,9 @@ int main() {
             if (popularity >= 10.0) color_class = "green";
             else if (popularity >= 5.0) color_class = "yellow";
 
-            // 클릭하면 TMDB 실제 페이지로 이동하도록 링크 추가
             fprintf(fp_out, "  <a href='https://www.themoviedb.org/movie/%d' target='_blank'>\n", id);
             fprintf(fp_out, "  <div class='card'>\n");
-            fprintf(fp_out, "    <div class='card-header'>??</div>\n");
+            fprintf(fp_out, "    <div class='card-header'>🍿</div>\n");
             fprintf(fp_out, "    <div class='card-body'>\n");
             fprintf(fp_out, "      <div class='score-badge %s'>%.1f</div>\n", color_class, popularity);
             fprintf(fp_out, "      <div class='title'>%s</div>\n", title);
@@ -135,16 +170,11 @@ int main() {
 
     fclose(fp_in);
     fclose(fp_out);
-    
-    // 파일 정리
-    sprintf(command, "del %s", gz_filename);
-    system(command);
-    sprintf(command, "del %s", json_filename);
-    system(command);
+
+    // [중요] 이번에는 json 파일을 삭제하지 않습니다! (다음 실행 때 재사용 위해)
+    // .gz 파일은 위에서 이미 삭제했습니다.
 
     printf("완료! 브라우저를 실행합니다...\n");
-
-    // [핵심] 브라우저 자동 실행 명령어
     system("start index.html");
 
     return 0;
