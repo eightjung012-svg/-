@@ -1,10 +1,13 @@
 // --- 1. Mock Data (영화 데이터) ---
-const movies = [
+const currentmovies = [
     { id: 1, title: '인셉션', genre: 'SF/액션', year: 2010, img: 'https://image.tmdb.org/t/p/w500/8Z8dptZQl1q55rU9w75tF4hZ1.jpg' },
     { id: 2, title: '인터스텔라', genre: 'SF/드라마', year: 2014, img: 'https://image.tmdb.org/t/p/w500/gEU2QniL6E8ahDaX06e8q62bq9.jpg' },
     { id: 3, title: '다크 나이트', genre: '액션/범죄', year: 2008, img: 'https://image.tmdb.org/t/p/w500/1hRoyzDtpgMU7Dz4JF22RAN49g.jpg' },
     { id: 4, title: '기생충', genre: '드라마/스릴러', year: 2019, img: 'https://image.tmdb.org/t/p/w500/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg' },
-    { id: 5, title: '어벤져스: 엔드게임', genre: '액션/SF', year: 2019, img: 'https://image.tmdb.org/t/p/w500/or06FN3Dka5tukK1e9sl16pB3iy.jpg' },
+];
+
+const koreanmovies = [
+        { id: 5, title: '어벤져스: 엔드게임', genre: '액션/SF', year: 2019, img: 'https://image.tmdb.org/t/p/w500/or06FN3Dka5tukK1e9sl16pB3iy.jpg' },
     { id: 6, title: '라라랜드', genre: '뮤지컬/로맨스', year: 2016, img: 'https://image.tmdb.org/t/p/w500/uDO8zWDhfWz7xHoph9c52QkufJE.jpg' },
     { id: 7, title: '스파이더맨: 뉴 유니버스', genre: '애니메이션', year: 2018, img: 'https://image.tmdb.org/t/p/w500/iiZZdoQBEYBv6id8su7ImL0oCbD.jpg' },
     { id: 8, title: '매트릭스', genre: 'SF/액션', year: 1999, img: 'https://image.tmdb.org/t/p/w500/f89U3ADr1tn54vdptPVt3tMEXWm.jpg' }
@@ -12,11 +15,17 @@ const movies = [
 
 let currentMovieId = null;
 
-// --- 2. Initialize (초기화) ---
-document.addEventListener('DOMContentLoaded', () => {
-    const grid = document.getElementById('movieGrid');
+// 영화 카드 생성 및 특정 Grid에 삽입하는 범용 함수
+function renderMovies(movies, containerId) {
+    const grid = document.getElementById(containerId);
+    if (!grid) {
+        console.error(`Error: Cannot find container with ID: ${containerId}`);
+        return;
+    }
     
-    // 영화 카드 생성
+    // 기존 내용 초기화
+    grid.innerHTML = ''; 
+
     movies.forEach(movie => {
         const card = document.createElement('div');
         card.className = 'movie-card';
@@ -33,12 +42,25 @@ document.addEventListener('DOMContentLoaded', () => {
         card.onclick = () => openModal(movie);
         grid.appendChild(card);
     });
+}
 
+
+// --- 2. Initialize (초기화) ---
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. 현재 상영작 렌더링 (ID: currentMovieGrid)
+    renderMovies(currentmovies, 'currentmovieGrid');
+
+    // 2. 한국 영화 렌더링 (ID: koreanMovieGrid)
+    renderMovies(koreanmovies, 'koreanmovieGrid');
+    
     // 스크롤 시 헤더 배경 변경
     window.addEventListener('scroll', () => {
         const header = document.getElementById('header');
-        if(window.scrollY > 50) header.style.background = '#141414';
-        else header.style.background = 'linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, transparent 100%)';
+        // ID를 'header'로 사용한다고 가정
+        if(header) { 
+            if(window.scrollY > 50) header.style.background = '#141414';
+            else header.style.background = 'linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, transparent 100%)';
+        }
     });
 });
 
@@ -84,7 +106,7 @@ document.getElementById('reviewForm').addEventListener('submit', function(e) {
 
     const review = {
         id: Date.now(),
-        movieId: currentMovieId,
+        movieId: currentmovieId,
         name: name,
         text: text,
         rating: rating,
