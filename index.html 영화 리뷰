@@ -31,7 +31,7 @@
 
     <main class="container">
         <h2 class="section-title">현재 상영작</h2>
-        <div class="movie-grid" id="movieGrid">
+        <div class="movie-grid" id="currentmovieGrid">
             </div>
     </main>
 
@@ -69,6 +69,12 @@
                 </div>
         </div>
     </div>
+
+    <main class="container">
+        <h2 class="section-title">한국영화</h2>
+        <div class="movie-grid" id="koreanmovieGrid">
+            </div>
+    </main>
 
     <script src="script.js"></script>
 </body>
