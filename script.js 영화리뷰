@@ -13,6 +13,10 @@ const koreanmovies = [
     { id: 8, title: '매트릭스', genre: 'SF/액션', year: 1999, img: 'https://image.tmdb.org/t/p/w500/f89U3ADr1tn54vdptPVt3tMEXWm.jpg' }
 ];
 
+const seriesmovies = [
+        { id: 5, title: '더글로리', genre: '드라마', year: 2023, img: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTmnhWiywlMqrefyfny5AMr_XXrQO5wjfjFaw&s' }
+];
+
 let currentMovieId = null;
 
 // 영화 카드 생성 및 특정 Grid에 삽입하는 범용 함수
@@ -52,6 +56,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 2. 한국 영화 렌더링 (ID: koreanMovieGrid)
     renderMovies(koreanmovies, 'koreanmovieGrid');
+    
+    // 3. 시리즈물 렌더링 (ID: seriesMovieGrid)
+    renderMovies(seriesmovies, 'seriesmovieGrid');
     
     // 스크롤 시 헤더 배경 변경
     window.addEventListener('scroll', () => {
