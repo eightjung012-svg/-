@@ -76,6 +76,13 @@
             </div>
     </main>
 
+    <main class="container">
+        <h2 class="section-title">시리즈물</h2>
+        <div class="movie-grid" id="seriesmovieGrid">
+            </div>
+    </main>
+
     <script src="script.js"></script>
 </body>
 </html>
+
