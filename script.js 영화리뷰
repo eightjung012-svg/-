@@ -1,16 +1,13 @@
 // --- 1. Mock Data (영화 데이터) ---
 const currentmovies = [
-    { id: 1, title: '인셉션', genre: 'SF/액션', year: 2010, img: 'https://image.tmdb.org/t/p/w500/8Z8dptZQl1q55rU9w75tF4hZ1.jpg' },
-    { id: 2, title: '인터스텔라', genre: 'SF/드라마', year: 2014, img: 'https://image.tmdb.org/t/p/w500/gEU2QniL6E8ahDaX06e8q62bq9.jpg' },
-    { id: 3, title: '다크 나이트', genre: '액션/범죄', year: 2008, img: 'https://image.tmdb.org/t/p/w500/1hRoyzDtpgMU7Dz4JF22RAN49g.jpg' },
-    { id: 4, title: '기생충', genre: '드라마/스릴러', year: 2019, img: 'https://image.tmdb.org/t/p/w500/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg' },
+    { id: 1, title: '주토피아2', genre: '애니메이션', year: 2025, img: 'https://i.namu.wiki/i/q782dV1rvcQIJN5KzVBdWDbMkY8kw3VoPE4dpgENvRgDKPbWyrYPJVM2WXnPQNkLKnUbGuEFEUkmSwfvhYDB8Q.webp' },
+    { id: 2, title: '극장판:주술회전', genre: '애니메이션', year: 2025, img: 'https://i.namu.wiki/i/xnV7GYUXEt3F1uoQh8YdvZoqnC6SX5TUNzN7eQoQBGEFkLgyXy7dJN_Yze_zkXq8ihekKf7kmkfmJ-zapIAzHg.webp' }
+
 ];
 
 const koreanmovies = [
-        { id: 5, title: '어벤져스: 엔드게임', genre: '액션/SF', year: 2019, img: 'https://image.tmdb.org/t/p/w500/or06FN3Dka5tukK1e9sl16pB3iy.jpg' },
-    { id: 6, title: '라라랜드', genre: '뮤지컬/로맨스', year: 2016, img: 'https://image.tmdb.org/t/p/w500/uDO8zWDhfWz7xHoph9c52QkufJE.jpg' },
-    { id: 7, title: '스파이더맨: 뉴 유니버스', genre: '애니메이션', year: 2018, img: 'https://image.tmdb.org/t/p/w500/iiZZdoQBEYBv6id8su7ImL0oCbD.jpg' },
-    { id: 8, title: '매트릭스', genre: 'SF/액션', year: 1999, img: 'https://image.tmdb.org/t/p/w500/f89U3ADr1tn54vdptPVt3tMEXWm.jpg' }
+        { id: 5, title: '기생충', genre: '오컬트', year: 2019, img: 'https://image.tving.com/ntgs/contents/CTC/caim/CAIM2100/ko/20231211/0020/M000244233.jpeg/dims/resize/480' },
+    { id: 6, title: '베테랑', genre: '액션/범죄', year: 2015, img: 'https://upload.wikimedia.org/wikipedia/ko/1/11/%EB%B2%A0%ED%85%8C%EB%9E%91.jpg' }
 ];
 
 const seriesmovies = [
@@ -177,3 +174,4 @@ function addReviewToDOM(review) {
     // 새 리뷰를 맨 위에 추가
     reviewListDiv.insertBefore(div, reviewListDiv.firstChild);
 }
+
