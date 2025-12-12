@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CINE LOG - 당신의 영화를 기록하세요</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        /* --- CSS Variables & Reset --- */
+        :root {
+            --bg-color: #141414;
+            --card-bg: #1f1f1f;
+            --primary-color: #e50914;
+            --text-main: #ffffff;
+            --text-sub: #b3b3b3;
+            --modal-bg: rgba(0, 0, 0, 0.85);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Noto Sans KR', sans-serif; }
+
+        body { background-color: var(--bg-color); color: var(--text-main); line-height: 1.6; }
+
+        a { text-decoration: none; color: inherit; cursor: pointer; }
+        ul { list-style: none; }
+
+        /* --- Header --- */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 5%;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, transparent 100%);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 100;
+            transition: background 0.3s;
+        }
+
+        .logo { 
+            font-size: 1.8rem; 
+            font-weight: 700; 
+            color: var(--primary-color); 
+            letter-spacing: 2px; 
+            cursor: pointer; 
+        }
+
+        .nav-area {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+
+        nav ul { display: flex; gap: 20px; }
+
+        nav a { 
+            font-weight: 500; 
+            transition: color 0.3s; 
+            position: relative;
+        }
+
+        nav a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -5px;
+            left: 0;
+            background-color: var(--primary-color);
+            transition: width 0.3s;
+        }
+
+        nav a:hover { color: var(--text-main); }
+        nav a:hover::after { width: 100%; }
+
+        /* 검색창 스타일 */
+        .search-box {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-box input {
+            background: #333; 
+            border: 1px solid #555; 
+            border-radius: 20px;
+            padding: 8px 15px;
+            padding-left: 35px;
+            color: white;
+            outline: none;
+            width: 200px;
+            transition: width 0.3s ease, border-color 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .search-box input:focus {
+            width: 250px;
+            border-color: var(--primary-color);
+            background: #444;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 12px;
+            color: #aaa;
+            font-size: 0.9rem;
+            pointer-events: none;
+        }
+
+        /* --- Hero Section --- */
+        .hero {
+            height: 60vh;
+            background: url('https://images.unsplash.com/photo-1536440136628-849c177e76a1?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80') center/cover no-repeat;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: relative;
+        }
+        .hero::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to bottom, transparent 0%, var(--bg-color) 100%);
+        }
+        .hero-content { position: relative; z-index: 1; margin-top: 50px; }
+        .hero h1 { font-size: 3rem; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.7); }
+        .hero p { font-size: 1.2rem; color: var(--text-sub); }
+
+        /* --- Main Content (Movie Grid) --- */
+        .container { padding: 50px 5%; max-width: 1400px; margin: 0 auto; }
+        .section-title { font-size: 1.5rem; margin-bottom: 20px; border-left: 4px solid var(--primary-color); padding-left: 10px; }
+
+        .movie-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 25px;
+        }
+
+        .movie-card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .movie-card:hover { transform: scale(1.05); box-shadow: 0 10px 20px rgba(0,0,0,0.5); z-index: 10; }
+
+        .poster {
+            width: 100%;
+            height: 300px;
+            background-color: #222;
+            object-fit: cover;
+        }
+
+        .card-info { padding: 15px; }
+        .movie-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .movie-meta { font-size: 0.85rem; color: var(--text-sub); display: flex; justify-content: space-between; }
+
+        .rank-badge {
+            position: absolute;
+            top: 0;
+            left: 0;
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+            padding: 5px 12px;
+            border-bottom-right-radius: 8px;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+            z-index: 2;
+        }
+
+        .my-review-card {
+            background-color: var(--card-bg);
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 5px solid var(--primary-color);
+            margin-bottom: 20px;
+        }
+        .my-review-title { font-size: 1.3rem; font-weight: bold; margin-bottom: 10px; color: white; }
+        .my-review-meta { font-size: 0.9rem; color: var(--text-sub); margin-bottom: 15px; display: flex; justify-content: space-between; }
+        .my-review-text { font-size: 1rem; color: #ddd; line-height: 1.5; background: #252525; padding: 15px; border-radius: 5px; }
+
+        /* --- Modal (Review Form) --- */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--modal-bg);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal.active { display: flex; opacity: 1; }
+
+        .modal-content {
+            background: #181818;
+            padding: 30px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+            box-shadow: 0 5px 30px rgba(0,0,0,0.5);
+        }
+
+        .close-btn { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; cursor: pointer; color: var(--text-sub); }
+
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; color: var(--text-sub); }
+        .form-input, .form-textarea {
+            width: 100%;
+            padding: 12px;
+            background: #333;
+            border: 1px solid #444;
+            border-radius: 5px;
+            color: white;
+            font-size: 1rem;
+        }
+        .form-input:focus, .form-textarea:focus { outline: none; border-color: var(--primary-color); }
+
+        .star-rating { display: flex; gap: 5px; flex-direction: row-reverse; justify-content: flex-end; }
+        .star-rating input { display: none; }
+        .star-rating label { font-size: 2rem; color: #444; cursor: pointer; transition: color 0.2s; }
+        .star-rating label:hover,
+        .star-rating label:hover ~ label,
+        .star-rating input:checked ~ label { color: #ffd700; }
+
+        .submit-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary-color);
+            border: none;
+            color: white;
+            font-size: 1rem;
+            font-weight: 700;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .submit-btn:hover { 
+            background-color: #b2070f; 
+            transform: scale(1.02);
+            box-shadow: 0 4px 15px rgba(229, 9, 20, 0.4);
+        }
+
+        /* --- Review List in Modal --- */
+        .review-list { margin-top: 20px; max-height: 200px; overflow-y: auto; border-top: 1px solid #333; padding-top: 10px; }
+        .review-item { background: #2a2a2a; padding: 10px; margin-bottom: 10px; border-radius: 5px; font-size: 0.9rem; }
+        .review-header { display: flex; justify-content: space-between; margin-bottom: 5px; color: var(--primary-color); font-weight: bold; }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #141414; }
+        ::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #666; }
+
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2rem; }
+            .movie-grid { grid-template-columns: repeat(2, 1fr); }
+            .nav-area { flex-direction: column-reverse; gap: 10px; }
+            header { flex-direction: column; padding: 10px 5%; }
+            .search-box input { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <header id="header">
+        <div class="logo" onclick="showView('home')">CINE LOG</div>
+        
+        <div class="nav-area">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="영화 제목 검색...">
+            </div>
+
+            <nav>
+                <ul>
+                    <li><a onclick="showView('home')">홈</a></li>
+                    <li><a onclick="showView('boxoffice')">박스오피스</a></li>
+                    <li><a onclick="showView('myreviews')">내 리뷰</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <section class="hero" id="heroSection">
+        <div class="hero-content">
+            <h1>감동을 기록하다</h1>
+            <p>오늘 본 영화의 여운을 리뷰로 남겨보세요.</p>
+        </div>
+    </section>
+
+    <div id="homeView">
+        <main class="container">
+            <h2 class="section-title">현재 상영작</h2>
+            <div class="movie-grid" id="currentmovieGrid"></div>
+        </main>
+
+        <main class="container">
+            <h2 class="section-title">한국영화</h2>
+            <div class="movie-grid" id="koreanmovieGrid"></div>
+        </main>
+
+        <main class="container">
+            <h2 class="section-title">시리즈물</h2>
+            <div class="movie-grid" id="seriesmovieGrid"></div>
+        </main>
+    </div>
+
+    <div id="boxOfficeView" style="display: none;">
+        <main class="container">
+            <h2 class="section-title">BOX OFFICE TOP 12</h2>
+            <div class="movie-grid" id="boxOfficeGrid"></div>
+        </main>
+    </div>
+
+    <div id="myReviewsView" style="display: none;">
+        <main class="container">
+            <h2 class="section-title">내가 쓴 리뷰</h2>
+            <div id="myReviewsList" style="max-width: 800px; margin: 0 auto;"></div>
+        </main>
+    </div>
+
+    <main class="container" id="searchResultView" style="display: none;">
+        <h2 class="section-title">검색 결과</h2>
+        <div class="movie-grid" id="searchResultGrid"></div>
+        <p id="noResultMsg" style="text-align:center; color: #777; display:none; margin-top:20px;">검색 결과가 없습니다.</p>
+    </main>
+
+    <div class="modal" id="reviewModal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <h2 id="modalTitle" style="margin-bottom: 20px;">영화 제목</h2>
+            
+            <form id="reviewForm">
+                <div class="form-group">
+                    <label>별점</label>
+                    <div class="star-rating">
+                        <input type="radio" id="star5" name="rating" value="5"><label for="star5" title="5점"><i class="fas fa-star"></i></label>
+                        <input type="radio" id="star4" name="rating" value="4"><label for="star4" title="4점"><i class="fas fa-star"></i></label>
+                        <input type="radio" id="star3" name="rating" value="3"><label for="star3" title="3점"><i class="fas fa-star"></i></label>
+                        <input type="radio" id="star2" name="rating" value="2"><label for="star2" title="2점"><i class="fas fa-star"></i></label>
+                        <input type="radio" id="star1" name="rating" value="1"><label for="star1" title="1점"><i class="fas fa-star"></i></label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="reviewerName">작성자</label>
+                    <input type="text" id="reviewerName" class="form-input" placeholder="이름을 입력하세요" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="reviewText">리뷰 내용</label>
+                    <textarea id="reviewText" class="form-textarea" rows="4" placeholder="영화에 대한 감상평을 남겨주세요..." required></textarea>
+                </div>
+
+                <button type="submit" class="submit-btn">리뷰 등록하기</button>
+            </form>
+
+            <div class="review-list" id="reviewList"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. 영화 데이터 (안정적인 위키백과/공용 파일 서버 경로 사용) ---
+        // 이미지가 깨질 경우를 대비해 onerror 코드가 포함되어 있습니다.
+        const currentmovies = [
+            { id: 1, title: '주토피아 2', genre: '애니메이션', year: 2025, img: 'https://en.wikipedia.org/wiki/Special:FilePath/Zootopia_2_(2025_film).jpg?width=300' },
+            { id: 2, title: '극장판 주술회전 0', genre: '애니메이션', year: 2021, img: 'https://en.wikipedia.org/wiki/Special:FilePath/Gekij%C5%8D-ban_Jujutsu_Kaisen_0.png?width=300' },
+            { id: 3, title: '위키드', genre: '뮤지컬/판타지', year: 2024, img: 'https://en.wikipedia.org/wiki/Special:FilePath/Wicked_2024_whisper_poster.jpg?width=300' },
+            { id: 4, title: '무파사: 라이온 킹', genre: '모험/드라마', year: 2024, img: 'https://i.namu.wiki/i/iVjTGmiXpwMBhxWchTin0C5nX17SZDPiFtrgUIOvUNr7QF59Gja_UyD4EpdjEjd1lygeuhpOfiiLmziI8ZxmfO574ZGAeacSf_QaAqIxuAG44c_IQRwjPm3yjMKKGpUSuXvv75UIeGssDC0xrEdQHA.webp' }
+        ];
+
+        const koreanmovies = [
+            { id: 5, title: '기생충', genre: '드라마/스릴러', year: 2019, img: 'https://i.namu.wiki/i/OSztJWgsdImEDUbQ5HE8rtJCF_bKjLbCUJhdLVWG6zHKcHa-rGeQJOV9KayYu91DliUfQhOFfP-o_ctAQQK-GA.webp' },
+            { id: 6, title: '베테랑 2', genre: '액션/범죄', year: 2024, img: 'https://i.namu.wiki/i/epZnvgJRbnXIL0RtJ4kjlpSqLmAAr0fSZxYziNwHu2tOJdh_-fZwtVWsLtmCb5KjL-JMJzGbrwN0X2KkMZio0w.webp' },
+            { id: 9, title: '하얼빈', genre: '시대극/액션', year: 2024, img: 'https://en.wikipedia.org/wiki/Special:FilePath/Harbin_movie.jpg?width=300' },
+            { id: 10, title: '서울의 봄', genre: '드라마', year: 2023, img: 'https://en.wikipedia.org/wiki/Special:FilePath/12.12-_The_Day.jpg?width=300' }
+        ];
+
+        const seriesmovies = [
+            { id: 7, title: '더 글로리', genre: '드라마', year: 2023, img: 'https://i.namu.wiki/i/SdJHio7UtRjLALnLn4TLhHAgY5fvfY1mkQhFBA6_6jqglUtW1BTvjIlseI_lpEw2-v3kuUkIwT6YXBYVkGlnOA.webp' },
+            { id: 8, title: '기묘한 이야기', genre: '공포/SF', year: 2022, img: 'https://upload.wikimedia.org/wikipedia/en/thumb/7/78/Stranger_Things_season_4.jpg/220px-Stranger_Things_season_4.jpg' },
+            { id: 11, title: '오징어 게임 2', genre: '스릴러', year: 2024, img: 'https://en.wikipedia.org/wiki/Special:FilePath/Squid_Game_season_2_poster.png?width=300' },
+            { id: 12, title: '무빙', genre: '액션/히어로', year: 2023, img: 'https://i.namu.wiki/i/Z0AGqK3cuZM9JSvek7kONbiOiqh9xEyDCFArvgbKBq2I_7YYWJVkFJwy88xk7UXpsKDFgaNR9CD9ZguIZHZ3Ow.webp' }
+        ];
+
+        let currentMovieId = null;
+        // 전체 영화 데이터 통합
+        const allMovies = [...currentmovies, ...koreanmovies, ...seriesmovies];
+
+        // --- 2. 화면 제어 및 렌더링 ---
+        document.addEventListener('DOMContentLoaded', () => {
+            renderMovies(currentmovies, 'currentmovieGrid');
+            renderMovies(koreanmovies, 'koreanmovieGrid');
+            renderMovies(seriesmovies, 'seriesmovieGrid');
+            
+            // 검색 이벤트
+            const searchInput = document.getElementById('searchInput');
+            searchInput.addEventListener('input', handleSearch);
+
+            // 헤더 스크롤 효과
+            window.addEventListener('scroll', () => {
+                const header = document.getElementById('header');
+                if(header) { 
+                    if(window.scrollY > 50) header.style.background = '#141414';
+                    else header.style.background = 'linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, transparent 100%)';
+                }
+            });
+        });
+
+        // 네비게이션 뷰 전환 (SPA처럼 동작)
+        function showView(viewName) {
+            const views = ['homeView', 'boxOfficeView', 'myReviewsView', 'searchResultView'];
+            const hero = document.getElementById('heroSection');
+            
+            // 모든 뷰 숨기기
+            views.forEach(v => document.getElementById(v).style.display = 'none');
+
+            // 검색어 초기화
+            document.getElementById('searchInput').value = '';
+
+            if (viewName === 'home') {
+                document.getElementById('homeView').style.display = 'block';
+                hero.style.display = 'flex'; // 히어로 섹션 보이기
+            } else if (viewName === 'boxoffice') {
+                document.getElementById('boxOfficeView').style.display = 'block';
+                hero.style.display = 'none';
+                renderBoxOffice(); // 박스오피스 렌더링
+            } else if (viewName === 'myreviews') {
+                document.getElementById('myReviewsView').style.display = 'block';
+                hero.style.display = 'none';
+                renderMyReviews(); // 내 리뷰 렌더링
+            }
+        }
+
+        // 영화 카드 렌더링 (기본)
+        function renderMovies(movies, containerId) {
+            const grid = document.getElementById(containerId);
+            if (!grid) return;
+            grid.innerHTML = ''; 
+            if(movies.length === 0) return;
+
+            movies.forEach(movie => {
+                const card = createMovieCard(movie);
+                grid.appendChild(card);
+            });
+        }
+
+        // 박스오피스 렌더링 (순위 배지 추가)
+        function renderBoxOffice() {
+            const grid = document.getElementById('boxOfficeGrid');
+            grid.innerHTML = '';
+            
+            // 박스오피스 순위를 위해 전체 영화를 섞거나 정렬 (여기선 임의 순서)
+            const sortedMovies = [...allMovies].sort((a, b) => a.title.localeCompare(b.title)); // 가나다순 임시 정렬
+            
+            sortedMovies.forEach((movie, index) => {
+                const card = createMovieCard(movie);
+                
+                // 순위 배지 추가
+                const badge = document.createElement('div');
+                badge.className = 'rank-badge';
+                badge.innerText = index + 1;
+                card.appendChild(badge);
+
+                grid.appendChild(card);
+            });
+        }
+
+        // 영화 카드 HTML 생성 헬퍼 함수
+        function createMovieCard(movie) {
+            const card = document.createElement('div');
+            card.className = 'movie-card';
+            // 이미지 로드 실패 시 대체 이미지(Placehold.co) 보여주는 코드 추가
+            card.innerHTML = `
+                <img src="${movie.img}" alt="${movie.title}" class="poster" 
+                     onerror="this.src='https://placehold.co/300x450/333/fff?text=${encodeURIComponent(movie.title)}'">
+                <div class="card-info">
+                    <div class="movie-title">${movie.title}</div>
+                    <div class="movie-meta">
+                        <span>${movie.genre}</span>
+                        <span>${movie.year}</span>
+                    </div>
+                </div>
+            `;
+            card.onclick = () => openModal(movie);
+            return card;
+        }
+
+        // 내 리뷰 모아보기 렌더링
+        function renderMyReviews() {
+            const listDiv = document.getElementById('myReviewsList');
+            listDiv.innerHTML = '';
+
+            const reviews = JSON.parse(localStorage.getItem('cineLogReviews')) || [];
+
+            if (reviews.length === 0) {
+                listDiv.innerHTML = '<p style="text-align:center; color:#777; font-size:1.2rem; margin-top:50px;">작성한 리뷰가 없습니다. 영화를 클릭해서 리뷰를 남겨보세요!</p>';
+                return;
+            }
+
+            // 최신순 정렬
+            reviews.reverse().forEach(review => {
+                // 리뷰의 movieId로 영화 정보 찾기
+                const movie = allMovies.find(m => m.id === review.movieId);
+                const movieTitle = movie ? movie.title : '알 수 없는 영화';
+
+                // 별점 아이콘
+                let stars = '';
+                for(let i=0; i<5; i++) {
+                    stars += i < review.rating ? '<i class="fas fa-star" style="color:#ffd700"></i>' : '<i class="far fa-star" style="color:#555"></i>';
+                }
+
+                const reviewCard = document.createElement('div');
+                reviewCard.className = 'my-review-card';
+                reviewCard.innerHTML = `
+                    <div class="my-review-title">
+                        ${movieTitle} 
+                        <span style="font-size:0.9rem; font-weight:normal; margin-left:10px; color:#aaa;">${review.date}</span>
+                    </div>
+                    <div class="my-review-meta">
+                        <span>작성자: ${review.name}</span>
+                        <span>${stars}</span>
+                    </div>
+                    <div class="my-review-text">${review.text}</div>
+                `;
+                listDiv.appendChild(reviewCard);
+            });
+        }
+
+        // 검색 기능
+        function handleSearch(e) {
+            const searchTerm = e.target.value.toLowerCase().trim();
+            const hero = document.getElementById('heroSection');
+            const homeView = document.getElementById('homeView');
+            const searchResultView = document.getElementById('searchResultView');
+            const boxOfficeView = document.getElementById('boxOfficeView');
+            const myReviewsView = document.getElementById('myReviewsView');
+            const noResultMsg = document.getElementById('noResultMsg');
+
+            // 다른 뷰들 숨기기
+            boxOfficeView.style.display = 'none';
+            myReviewsView.style.display = 'none';
+
+            if (searchTerm === '') {
+                homeView.style.display = 'block';
+                hero.style.display = 'flex';
+                searchResultView.style.display = 'none';
+            } else {
+                homeView.style.display = 'none';
+                hero.style.display = 'none';
+                searchResultView.style.display = 'block';
+
+                const filteredMovies = allMovies.filter(movie => 
+                    movie.title.toLowerCase().includes(searchTerm)
+                );
+
+                renderMovies(filteredMovies, 'searchResultGrid');
+
+                if (filteredMovies.length === 0) {
+                    noResultMsg.style.display = 'block';
+                } else {
+                    noResultMsg.style.display = 'none';
+                }
+            }
+        }
+
+        // --- 3. 모달 제어 ---
+        const modal = document.getElementById('reviewModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const reviewListDiv = document.getElementById('reviewList');
+
+        function openModal(movie) {
+            currentMovieId = movie.id;
+            modalTitle.innerText = `${movie.title} 리뷰 남기기`;
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden'; 
+            loadReviews(movie.id); 
+        }
+
+        function closeModal() {
+            modal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+            document.getElementById('reviewForm').reset();
+        }
+
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+
+        // --- 4. 리뷰 저장 로직 ---
+        document.getElementById('reviewForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('reviewerName').value;
+            const text = document.getElementById('reviewText').value;
+            const ratingInput = document.querySelector('input[name="rating"]:checked');
+            const rating = ratingInput ? ratingInput.value : 0;
+
+            if (rating === 0) {
+                alert("별점을 선택해주세요!");
+                return;
+            }
+
+            const review = {
+                id: Date.now(),
+                movieId: currentMovieId,
+                name: name,
+                text: text,
+                rating: rating,
+                date: new Date().toLocaleDateString()
+            };
+
+            saveReviewToStorage(review);
+            addReviewToDOM(review);
+            document.getElementById('reviewForm').reset();
+        });
+
+        function saveReviewToStorage(review) {
+            let reviews = JSON.parse(localStorage.getItem('cineLogReviews')) || [];
+            reviews.push(review);
+            localStorage.setItem('cineLogReviews', JSON.stringify(reviews));
+        }
+
+        function loadReviews(movieId) {
+            reviewListDiv.innerHTML = '';
+            let reviews = JSON.parse(localStorage.getItem('cineLogReviews')) || [];
+            const movieReviews = reviews.filter(r => r.movieId === movieId);
+            
+            if (movieReviews.length === 0) {
+                reviewListDiv.innerHTML = '<p style="color:#777; text-align:center;">아직 작성된 리뷰가 없습니다.</p>';
+            } else {
+                movieReviews.reverse().forEach(review => addReviewToDOM(review));
+            }
+        }
+
+        function addReviewToDOM(review) {
+            if (reviewListDiv.innerHTML.includes('아직 작성된 리뷰가 없습니다.')) {
+                reviewListDiv.innerHTML = '';
+            }
+
+            const div = document.createElement('div');
+            div.className = 'review-item';
+            
+            let stars = '';
+            for(let i=0; i<5; i++) {
+                stars += i < review.rating ? '<i class="fas fa-star" style="color:#ffd700"></i>' : '<i class="far fa-star" style="color:#555"></i>';
+            }
+
+            div.innerHTML = `
+                <div class="review-header">
+                    <span>${review.name}</span>
+                    <span>${stars}</span>
+                </div>
+                <div style="color: #ddd; margin-bottom:5px;">${review.text}</div>
+                <div style="font-size: 0.75rem; color: #666; text-align: right;">${review.date}</div>
+            `;
+            
+            reviewListDiv.insertBefore(div, reviewListDiv.firstChild);
+        }
+    </script>
+</body>
+</html>
