@@ -11,7 +11,8 @@ const koreanmovies = [
 ];
 
 const seriesmovies = [
-        { id: 5, title: '더글로리', genre: '드라마', year: 2023, img: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTmnhWiywlMqrefyfny5AMr_XXrQO5wjfjFaw&s' }
+        { id: 7, title: '더글로리', genre: '드라마', year: 2023, img: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTmnhWiywlMqrefyfny5AMr_XXrQO5wjfjFaw&s' }
+        { id: 8, title: '기묘한이야기', genre: '공포', year: 2025, img: 'https://i.namu.wiki/i/4pDVI2azbJbDINjLjAKgWSpym_4h-dq3PgYug2gOSBDSdQsYxAvq6CKOe-m80K7W4vYmLDs9cwLDaOvgdbMqqg.webp' }
 ];
 
 let currentMovieId = null;
@@ -174,4 +175,5 @@ function addReviewToDOM(review) {
     // 새 리뷰를 맨 위에 추가
     reviewListDiv.insertBefore(div, reviewListDiv.firstChild);
 }
+
 
