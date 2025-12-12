@@ -1,0 +1,178 @@
+// --- 1. Mock Data (영화 데이터) ---
+const currentmovies = [
+    { id: 1, title: '주토피아2', genre: '애니메이션', year: 2025, img: 'https://i.namu.wiki/i/q782dV1rvcQIJN5KzVBdWDbMkY8kw3VoPE4dpgENvRgDKPbWyrYPJVM2WXnPQNkLKnUbGuEFEUkmSwfvhYDB8Q.webp' },
+    { id: 2, title: '극장판:주술회전', genre: '애니메이션', year: 2025, img: 'https://i.namu.wiki/i/xnV7GYUXEt3F1uoQh8YdvZoqnC6SX5TUNzN7eQoQBGEFkLgyXy7dJN_Yze_zkXq8ihekKf7kmkfmJ-zapIAzHg.webp' }
+
+];
+
+const koreanmovies = [
+    { id: 5, title: '기생충', genre: '오컬트', year: 2019, img: 'https://image.tving.com/ntgs/contents/CTC/caim/CAIM2100/ko/20231211/0020/M000244233.jpeg/dims/resize/480' },
+    { id: 6, title: '베테랑', genre: '액션/범죄', year: 2015, img: 'https://upload.wikimedia.org/wikipedia/ko/1/11/%EB%B2%A0%ED%85%8C%EB%9E%91.jpg' }
+];
+
+const seriesmovies = [
+    { id: 7, title: '더글로리', genre: '드라마', year: 2023, img: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTmnhWiywlMqrefyfny5AMr_XXrQO5wjfjFaw&s' },
+    { id: 8, title: '기묘한이야기', genre: '공포', year: 2025, img: 'https://i.namu.wiki/i/4pDVI2azbJbDINjLjAKgWSpym_4h-dq3PgYug2gOSBDSdQsYxAvq6CKOe-m80K7W4vYmLDs9cwLDaOvgdbMqqg.webp' }
+];
+
+let currentMovieId = null;
+
+// 영화 카드 생성 및 특정 Grid에 삽입하는 범용 함수
+function renderMovies(movies, containerId) {
+    const grid = document.getElementById(containerId);
+    if (!grid) {
+        console.error(`Error: Cannot find container with ID: ${containerId}`);
+        return;
+    }
+    
+    // 기존 내용 초기화
+    grid.innerHTML = ''; 
+
+    movies.forEach(movie => {
+        const card = document.createElement('div');
+        card.className = 'movie-card';
+        card.innerHTML = `
+            <img src="${movie.img}" alt="${movie.title}" class="poster" onerror="this.src='https://placehold.co/300x450/333/fff?text=No+Image'">
+            <div class="card-info">
+                <div class="movie-title">${movie.title}</div>
+                <div class="movie-meta">
+                    <span>${movie.genre}</span>
+                    <span>${movie.year}</span>
+                </div>
+            </div>
+        `;
+        card.onclick = () => openModal(movie);
+        grid.appendChild(card);
+    });
+}
+
+
+// --- 2. Initialize (초기화) ---
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. 현재 상영작 렌더링 (ID: currentMovieGrid)
+    renderMovies(currentmovies, 'currentmovieGrid');
+
+    // 2. 한국 영화 렌더링 (ID: koreanMovieGrid)
+    renderMovies(koreanmovies, 'koreanmovieGrid');
+    
+    // 3. 시리즈물 렌더링 (ID: seriesMovieGrid)
+    renderMovies(seriesmovies, 'seriesmovieGrid');
+    
+    // 스크롤 시 헤더 배경 변경
+    window.addEventListener('scroll', () => {
+        const header = document.getElementById('header');
+        // ID를 'header'로 사용한다고 가정
+        if(header) { 
+            if(window.scrollY > 50) header.style.background = '#141414';
+            else header.style.background = 'linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, transparent 100%)';
+        }
+    });
+});
+
+// --- 3. Modal Functions (모달 제어) ---
+const modal = document.getElementById('reviewModal');
+const modalTitle = document.getElementById('modalTitle');
+const reviewListDiv = document.getElementById('reviewList');
+
+function openModal(movie) {
+    currentMovieId = movie.id;
+    modalTitle.innerText = `${movie.title} 리뷰 남기기`;
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden'; // 스크롤 방지
+    loadReviews(movie.id); // 저장된 리뷰 불러오기
+}
+
+function closeModal() {
+    modal.classList.remove('active');
+    document.body.style.overflow = 'auto';
+    document.getElementById('reviewForm').reset();
+}
+
+// 모달 바깥 클릭 시 닫기
+window.onclick = function(event) {
+    if (event.target == modal) {
+        closeModal();
+    }
+}
+
+// --- 4. Review Logic (리뷰 저장 및 로드 - LocalStorage 사용) ---
+document.getElementById('reviewForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const name = document.getElementById('reviewerName').value;
+    const text = document.getElementById('reviewText').value;
+    const ratingInput = document.querySelector('input[name="rating"]:checked');
+    const rating = ratingInput ? ratingInput.value : 0;
+
+    if (rating === 0) {
+        alert("별점을 선택해주세요!");
+        return;
+    }
+
+    const review = {
+        id: Date.now(),
+        movieId: currentmovieId,
+        name: name,
+        text: text,
+        rating: rating,
+        date: new Date().toLocaleDateString()
+    };
+
+    // LocalStorage에 저장
+    saveReviewToStorage(review);
+
+    // 화면에 추가
+    addReviewToDOM(review);
+    
+    // 폼 초기화
+    document.getElementById('reviewForm').reset();
+});
+
+function saveReviewToStorage(review) {
+    let reviews = JSON.parse(localStorage.getItem('cineLogReviews')) || [];
+    reviews.push(review);
+    localStorage.setItem('cineLogReviews', JSON.stringify(reviews));
+}
+
+function loadReviews(movieId) {
+    reviewListDiv.innerHTML = '';
+    let reviews = JSON.parse(localStorage.getItem('cineLogReviews')) || [];
+    // 해당 영화의 리뷰만 필터링
+    const movieReviews = reviews.filter(r => r.movieId === movieId);
+    
+    if (movieReviews.length === 0) {
+        reviewListDiv.innerHTML = '<p style="color:#777; text-align:center;">아직 작성된 리뷰가 없습니다.</p>';
+    } else {
+        // 최신순 정렬 후 표시
+        movieReviews.reverse().forEach(review => addReviewToDOM(review));
+    }
+}
+
+function addReviewToDOM(review) {
+    // "리뷰 없음" 메시지 제거
+    if (reviewListDiv.innerHTML.includes('아직 작성된 리뷰가 없습니다.')) {
+        reviewListDiv.innerHTML = '';
+    }
+
+    const div = document.createElement('div');
+    div.className = 'review-item';
+    
+    // 별점 아이콘 생성
+    let stars = '';
+    for(let i=0; i<5; i++) {
+        stars += i < review.rating ? '<i class="fas fa-star" style="color:#ffd700"></i>' : '<i class="far fa-star" style="color:#555"></i>';
+    }
+
+    div.innerHTML = `
+        <div class="review-header">
+            <span>${review.name}</span>
+            <span>${stars}</span>
+        </div>
+        <div style="color: #ddd; margin-bottom:5px;">${review.text}</div>
+        <div style="font-size: 0.75rem; color: #666; text-align: right;">${review.date}</div>
+    `;
+    
+    // 새 리뷰를 맨 위에 추가
+    reviewListDiv.insertBefore(div, reviewListDiv.firstChild);
+}
+
