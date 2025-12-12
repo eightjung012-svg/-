@@ -2,17 +2,19 @@
 const currentmovies = [
     { id: 1, title: '주토피아2', genre: '애니메이션', year: 2025, img: 'https://i.namu.wiki/i/q782dV1rvcQIJN5KzVBdWDbMkY8kw3VoPE4dpgENvRgDKPbWyrYPJVM2WXnPQNkLKnUbGuEFEUkmSwfvhYDB8Q.webp' },
     { id: 2, title: '극장판:주술회전', genre: '애니메이션', year: 2025, img: 'https://i.namu.wiki/i/xnV7GYUXEt3F1uoQh8YdvZoqnC6SX5TUNzN7eQoQBGEFkLgyXy7dJN_Yze_zkXq8ihekKf7kmkfmJ-zapIAzHg.webp' }
-
 ];
 
 const koreanmovies = [
     { id: 5, title: '기생충', genre: '오컬트', year: 2019, img: 'https://image.tving.com/ntgs/contents/CTC/caim/CAIM2100/ko/20231211/0020/M000244233.jpeg/dims/resize/480' },
-    { id: 6, title: '베테랑', genre: '액션/범죄', year: 2015, img: 'https://upload.wikimedia.org/wikipedia/ko/1/11/%EB%B2%A0%ED%85%8C%EB%9E%91.jpg' }
+    { id: 6, title: '베테랑', genre: '액션/범죄', year: 2015, img: 'https://upload.wikimedia.org/wikipedia/ko/1/11/%EB%B2%A0%ED%85%8C%EB%9E%91.jpg' },
+    { id: 9, title: '건축학개론', genre: '로맨스', year: 2012, img: 'https://i.namu.wiki/i/otf8tOY_lb8MyTzXHsaEVM-NodcB5-JYvwFvZTfu3sdmAd4LkLBDQqiNdTKPMRrxy2n7QwvnDt5j7RqPtLHElw.webp' }
+
 ];
 
 const seriesmovies = [
     { id: 7, title: '더글로리', genre: '드라마', year: 2023, img: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTmnhWiywlMqrefyfny5AMr_XXrQO5wjfjFaw&s' },
-    { id: 8, title: '기묘한이야기', genre: '공포', year: 2025, img: 'https://i.namu.wiki/i/4pDVI2azbJbDINjLjAKgWSpym_4h-dq3PgYug2gOSBDSdQsYxAvq6CKOe-m80K7W4vYmLDs9cwLDaOvgdbMqqg.webp' }
+    { id: 8, title: '기묘한이야기', genre: '공포', year: 2025, img: 'https://i.namu.wiki/i/4pDVI2azbJbDINjLjAKgWSpym_4h-dq3PgYug2gOSBDSdQsYxAvq6CKOe-m80K7W4vYmLDs9cwLDaOvgdbMqqg.webp' },
+    { id: 10, title: '폭싹 속았수다', genre: '로맨스', year: 2025, img: 'https://i.namu.wiki/i/rXuE35p4JOShHlg__FAsMz0ZAVLSnBcAJlB33dMk8lPETYbiqj6qsaZWs2xuY5veM7NktKWD6KDknQbz6Ht7EQ.webp' }
 ];
 
 let currentMovieId = null;
